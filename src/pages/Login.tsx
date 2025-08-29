@@ -18,7 +18,7 @@ const Login = () => {
     setError("");
 
     try {
-      const response = await fetch("/api/auth/login", {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/auth/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -33,10 +33,10 @@ const Login = () => {
         localStorage.setItem("token", data.token);
         localStorage.setItem("user", JSON.stringify(data.user));
         
-        // Redirecionar para o dashboard externo
-        window.location.href = "sr-mendes.vercel.app/";
+        // Redirecionar para o dashboard interno
+        window.location.href = "/dashboard";
       } else {
-        setError(data.message || "Erro ao fazer login" );
+        setError(data.message || "Erro ao fazer login");
       }
     } catch (err) {
       setError("Erro de conexão com o servidor");
@@ -100,8 +100,6 @@ const Login = () => {
           </form>
           <p className="text-center text-xs text-slate-500 mt-6">
             Sistema de Gerenciamento
-              
-
             © 2025 Sr. Mendes Barbearia
           </p>
         </CardContent>
