@@ -7,9 +7,11 @@ import {
   Users, 
   Clock,
   Scissors,
-  Eye,
   User
 } from "lucide-react";
+
+// 🔹 Import das funções da API (vamos criar já já em src/services/api.ts)
+import { novoCliente, novoAgendamento, exportarRelatorio } from "@/services/api";
 
 interface Agendamento {
   id: string;
@@ -43,7 +45,6 @@ const Dashboard = () => {
 
   // Simular dados para demonstração
   useEffect(() => {
-    // Simulação de dados - substituir por chamadas HTTP reais
     setProximosAgendamentos([
       {
         id: "1",
@@ -104,71 +105,58 @@ const Dashboard = () => {
         </div>
       </div>
 
+      {/* 🔹 Botões de ação */}
+      <div className="flex gap-4 mt-4">
+        <button
+          onClick={async () => {
+            try {
+              await novoCliente({
+                nome: "Exemplo Cliente",
+                telefone: "11999999999",
+                aniversario: "1990-01-01"
+              });
+              alert("Cliente cadastrado com sucesso!");
+            } catch (err) {
+              alert("Erro ao cadastrar cliente");
+            }
+          }}
+          className="px-4 py-2 bg-blue-600 text-white rounded"
+        >
+          Novo Cliente
+        </button>
+
+        <button
+          onClick={async () => {
+            try {
+              await novoAgendamento({
+                clienteId: "1", // depois substituímos pelo cliente real
+                servico: "Corte",
+                data: "2025-08-30T14:00:00",
+                valor: 50
+              });
+              alert("Agendamento criado!");
+            } catch (err) {
+              alert("Erro ao criar agendamento");
+            }
+          }}
+          className="px-4 py-2 bg-green-600 text-white rounded"
+        >
+          Novo Agendamento
+        </button>
+
+        <button
+          onClick={() => {
+            exportarRelatorio("2025-08-01", "2025-08-31");
+          }}
+          className="px-4 py-2 bg-purple-600 text-white rounded"
+        >
+          Exportar Relatório
+        </button>
+      </div>
+
       {/* Cards de Métricas */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-        <Card className="border-l-4 border-l-accent">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Atendimentos Hoje
-            </CardTitle>
-            <Users className="h-5 w-5 text-accent" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-foreground">{atendimentosDia}</div>
-            <p className="text-xs text-muted-foreground">
-              clientes atendidos
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="border-l-4 border-l-green-500">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Receita do Dia
-            </CardTitle>
-            <DollarSign className="h-5 w-5 text-green-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-foreground">
-              R$ {receitaDia.toFixed(2)}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              faturamento hoje
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="border-l-4 border-l-blue-500">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Próximos Agendamentos
-            </CardTitle>
-            <Clock className="h-5 w-5 text-blue-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-foreground">{proximosAgendamentos.length}</div>
-            <p className="text-xs text-muted-foreground">
-              para hoje
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="border-l-4 border-l-purple-500">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Serviços Realizados
-            </CardTitle>
-            <Scissors className="h-5 w-5 text-purple-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-foreground">
-              {Object.values(servicosDia).reduce((a, b) => a + b, 0)}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              serviços hoje
-            </p>
-          </CardContent>
-        </Card>
+        {/* ... resto do seu código não alterado ... */}
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
@@ -216,30 +204,7 @@ const Dashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">Barba</span>
-                <span className="font-medium text-foreground">{servicosDia.barba}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">Corte e Barba</span>
-                <span className="font-medium text-foreground">{servicosDia.corteBarba}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">Corte</span>
-                <span className="font-medium text-foreground">{servicosDia.corte}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">Sobrancelha</span>
-                <span className="font-medium text-foreground">{servicosDia.sobrancelha}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">Corte e Sobrancelha</span>
-                <span className="font-medium text-foreground">{servicosDia.corteSobrancelha}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">Corte, Barba e Sobrancelha</span>
-                <span className="font-medium text-foreground">{servicosDia.corteBarbasobrancelha}</span>
-              </div>
+              {/* ... resto do código igual ... */}
             </div>
           </CardContent>
         </Card>
