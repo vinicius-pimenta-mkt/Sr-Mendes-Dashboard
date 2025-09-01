@@ -1,30 +1,56 @@
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { api } from "@/services/api";
 
-const Relatorios = () => {
-  const handleExport = async () => {
-    try {
-      const res = await api.get("/relatorios/export.pdf", {
-        responseType: "blob",
-      });
+interface Relatorio {
+  id: string;
+  tipo: string;
+  valor: number;
+  data: string;
+}
 
-      // Criar link para baixar PDF
-      const url = window.URL.createObjectURL(new Blob([res.data]));
-      const link = document.createElement("a");
-      link.href = url;
-      link.setAttribute("download", "relatorio.pdf");
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-    } catch (err) {
-      console.error("Erro ao exportar relatório", err);
-    }
+const Relatorios = () => {
+  const [relatorios, setRelatorios] = useState<Relatorio[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  // 👉 Listar relatórios
+  useEffect(() => {
+    const fetchRelatorios = async () => {
+      try {
+        const res = await api.get("/relatorios");
+        const data = Array.isArray(res.data) ? res.data : [];
+        setRelatorios(data);
+      } catch (err) {
+        console.error(err);
+        setRelatorios([]);
+      }
+    };
+    fetchRelatorios();
+  }, []);
+
+  // 👉 Exportar relatórios (ainda fake — depois conectamos ao PDF real)
+  const handleExport = () => {
+    alert("Exportando relatórios em PDF (mock). Depois conectamos ao backend real.");
   };
 
   return (
     <div className="p-6">
-      <h1 className="text-2xl font-bold mb-4">Relatórios</h1>
-      <Button onClick={handleExport}>📄 Exportar Relatório</Button>
+      <div className="flex justify-between items-center mb-4">
+        <h1 className="text-2xl font-bold">Relatórios</h1>
+        <Button onClick={handleExport}>Exportar PDF</Button>
+      </div>
+
+      <ul className="space-y-2">
+        {relatorios.map((r) => (
+          <li key={r.id} className="p-3 bg-white rounded shadow">
+            <p className="font-semibold">{r.tipo}</p>
+            <p className="text-sm">Valor: R$ {r.valor}</p>
+            <p className="text-xs text-gray-500">
+              Data: {new Date(r.data).toLocaleDateString()}
+            </p>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 };
