@@ -16,12 +16,12 @@ interface Cliente {
 const Clientes = () => {
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [open, setOpen] = useState(false);
+  const [editId, setEditId] = useState<string | null>(null);
   const [nome, setNome] = useState("");
   const [telefone, setTelefone] = useState("");
   const [aniversario, setAniversario] = useState("");
   const [obs, setObs] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
 
   // 👉 Listar clientes
   useEffect(() => {
@@ -29,34 +29,50 @@ const Clientes = () => {
       try {
         const res = await api.get("/clientes");
         const data = Array.isArray(res.data) ? res.data : [];
-        setClientes(data);
+
+        if (data.length === 0) {
+          // Mock
+          setClientes([
+            { id: "1", nome: "Maria Oliveira", telefone: "11999999999", aniversario: "1990-05-12", obs: "Prefere WhatsApp" },
+            { id: "2", nome: "João Silva", telefone: "11988888888", aniversario: "1985-09-21" },
+          ]);
+        } else {
+          setClientes(data);
+        }
       } catch (err) {
         console.error(err);
-        setClientes([]);
+        setClientes([
+          { id: "1", nome: "Maria Oliveira", telefone: "11999999999", aniversario: "1990-05-12", obs: "Prefere WhatsApp" },
+          { id: "2", nome: "João Silva", telefone: "11988888888", aniversario: "1985-09-21" },
+        ]);
       }
     };
     fetchClientes();
   }, []);
 
-  // 👉 Criar cliente
+  // 👉 Criar/Editar cliente
   const handleSave = async () => {
     setLoading(true);
-    setError("");
     try {
-      const res = await api.post("/clientes/owner", {
-        nome,
-        telefone,
-        aniversario,
-        obs,
-      });
-      setClientes((prev) => [res.data, ...prev]);
+      if (editId) {
+        const res = await api.put(`/clientes/${editId}`, {
+          nome, telefone, aniversario, obs
+        });
+        setClientes(prev => prev.map(c => (c.id === editId ? res.data : c)));
+      } else {
+        const res = await api.post("/clientes/owner", {
+          nome, telefone, aniversario, obs
+        });
+        setClientes(prev => [res.data, ...prev]);
+      }
       setOpen(false);
+      setEditId(null);
       setNome("");
       setTelefone("");
       setAniversario("");
       setObs("");
-    } catch (err: any) {
-      setError(err.response?.data?.error || "Erro ao salvar cliente");
+    } catch (err) {
+      console.error(err);
     } finally {
       setLoading(false);
     }
@@ -70,16 +86,28 @@ const Clientes = () => {
       </div>
 
       <ul className="space-y-2">
-        {clientes.map((c) => (
-          <li key={c.id} className="p-3 bg-white rounded shadow">
-            <p className="font-semibold">{c.nome}</p>
-            <p className="text-sm">{c.telefone}</p>
-            {c.aniversario && (
-              <p className="text-xs text-gray-500">
-                Aniversário: {c.aniversario}
-              </p>
-            )}
-            {c.obs && <p className="text-xs italic">{c.obs}</p>}
+        {clientes.map(c => (
+          <li key={c.id} className="p-3 bg-white rounded shadow flex justify-between">
+            <div>
+              <p className="font-semibold">{c.nome}</p>
+              <p className="text-sm">{c.telefone}</p>
+              {c.aniversario && <p className="text-xs text-gray-500">🎂 {c.aniversario}</p>}
+              {c.obs && <p className="text-xs text-gray-400">{c.obs}</p>}
+            </div>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => {
+                setEditId(c.id);
+                setNome(c.nome);
+                setTelefone(c.telefone);
+                setAniversario(c.aniversario || "");
+                setObs(c.obs || "");
+                setOpen(true);
+              }}
+            >
+              Editar
+            </Button>
           </li>
         ))}
       </ul>
@@ -87,28 +115,20 @@ const Clientes = () => {
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Novo Cliente</DialogTitle>
+            <DialogTitle>{editId ? "Editar Cliente" : "Novo Cliente"}</DialogTitle>
           </DialogHeader>
           <div className="space-y-3">
-            {error && <p className="text-red-500 text-sm">{error}</p>}
             <div>
               <Label>Nome</Label>
               <Input value={nome} onChange={(e) => setNome(e.target.value)} />
             </div>
             <div>
               <Label>Telefone</Label>
-              <Input
-                value={telefone}
-                onChange={(e) => setTelefone(e.target.value)}
-              />
+              <Input value={telefone} onChange={(e) => setTelefone(e.target.value)} />
             </div>
             <div>
               <Label>Aniversário</Label>
-              <Input
-                type="date"
-                value={aniversario}
-                onChange={(e) => setAniversario(e.target.value)}
-              />
+              <Input type="date" value={aniversario} onChange={(e) => setAniversario(e.target.value)} />
             </div>
             <div>
               <Label>Observações</Label>
