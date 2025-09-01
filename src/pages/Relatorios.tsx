@@ -23,9 +23,24 @@ interface FrequenciaCliente {
 }
 
 const Relatorios = () => {
-  const [servicosMaisVendidos, setServicosMaisVendidos] = useState<Servico[]>([]);
-  const [receitaTempos, setReceitaTempos] = useState<ReceitaTempo[]>([]);
-  const [frequenciaClientes, setFrequenciaClientes] = useState<FrequenciaCliente[]>([]);
+  // 👉 Começa já com mocks, assim a tela nunca fica vazia
+  const [servicosMaisVendidos, setServicosMaisVendidos] = useState<Servico[]>([
+    { servico: "Corte", quantidade: 12, receita: 240 },
+    { servico: "Barba", quantidade: 8, receita: 160 },
+    { servico: "Corte + Barba", quantidade: 5, receita: 150 },
+  ]);
+
+  const [receitaTempos, setReceitaTempos] = useState<ReceitaTempo[]>([
+    { mes: "Janeiro", receita: 1200 },
+    { mes: "Fevereiro", receita: 1350 },
+    { mes: "Março", receita: 1600 },
+  ]);
+
+  const [frequenciaClientes, setFrequenciaClientes] = useState<FrequenciaCliente[]>([
+    { nome: "João", visitas: 5 },
+    { nome: "Maria", visitas: 3 },
+    { nome: "Carlos", visitas: 7 },
+  ]);
 
   useEffect(() => {
     const fetchRelatorios = async () => {
@@ -33,46 +48,20 @@ const Relatorios = () => {
         const res = await api.get("/relatorios");
         const data = res.data;
 
-        // Se não vier nada da API, mantém mocks
-        if (!data || Object.keys(data).length === 0) {
-          setServicosMaisVendidos([
-            { servico: "Corte", quantidade: 12, receita: 240 },
-            { servico: "Barba", quantidade: 8, receita: 160 },
-            { servico: "Corte + Barba", quantidade: 5, receita: 150 },
-          ]);
-          setReceitaTempos([
-            { mes: "Janeiro", receita: 1200 },
-            { mes: "Fevereiro", receita: 1350 },
-            { mes: "Março", receita: 1600 },
-          ]);
-          setFrequenciaClientes([
-            { nome: "João", visitas: 5 },
-            { nome: "Maria", visitas: 3 },
-            { nome: "Carlos", visitas: 7 },
-          ]);
-        } else {
-          setServicosMaisVendidos(data.servicos || []);
-          setReceitaTempos(data.receita || []);
-          setFrequenciaClientes(data.frequencia || []);
+        if (data) {
+          if (Array.isArray(data.servicos) && data.servicos.length > 0) {
+            setServicosMaisVendidos(data.servicos);
+          }
+          if (Array.isArray(data.receita) && data.receita.length > 0) {
+            setReceitaTempos(data.receita);
+          }
+          if (Array.isArray(data.frequencia) && data.frequencia.length > 0) {
+            setFrequenciaClientes(data.frequencia);
+          }
         }
       } catch (err) {
-        console.error(err);
-        // Mock em caso de erro
-        setServicosMaisVendidos([
-          { servico: "Corte", quantidade: 12, receita: 240 },
-          { servico: "Barba", quantidade: 8, receita: 160 },
-          { servico: "Corte + Barba", quantidade: 5, receita: 150 },
-        ]);
-        setReceitaTempos([
-          { mes: "Janeiro", receita: 1200 },
-          { mes: "Fevereiro", receita: 1350 },
-          { mes: "Março", receita: 1600 },
-        ]);
-        setFrequenciaClientes([
-          { nome: "João", visitas: 5 },
-          { nome: "Maria", visitas: 3 },
-          { nome: "Carlos", visitas: 7 },
-        ]);
+        console.error("Erro ao buscar relatórios:", err);
+        // 👉 Mantém os mocks se der erro
       }
     };
     fetchRelatorios();
