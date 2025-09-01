@@ -18,19 +18,64 @@ const Relatorios = () => {
     const fetchRelatorios = async () => {
       try {
         const res = await api.get("/relatorios");
-        const data = Array.isArray(res.data) ? res.data : [];
+        let data = Array.isArray(res.data) ? res.data : [];
+
+        // Se não houver dados reais → usar MOCK para teste
+        if (!data || data.length === 0) {
+          data = [
+            {
+              id: "1",
+              tipo: "Corte de Cabelo",
+              valor: 50,
+              data: new Date().toISOString(),
+            },
+            {
+              id: "2",
+              tipo: "Barba",
+              valor: 30,
+              data: new Date().toISOString(),
+            },
+            {
+              id: "3",
+              tipo: "Corte + Barba",
+              valor: 70,
+              data: new Date().toISOString(),
+            },
+          ];
+        }
+
         setRelatorios(data);
       } catch (err) {
         console.error(err);
-        setRelatorios([]);
+        // fallback → MOCK também
+        setRelatorios([
+          {
+            id: "1",
+            tipo: "Corte de Cabelo",
+            valor: 50,
+            data: new Date().toISOString(),
+          },
+          {
+            id: "2",
+            tipo: "Barba",
+            valor: 30,
+            data: new Date().toISOString(),
+          },
+          {
+            id: "3",
+            tipo: "Corte + Barba",
+            valor: 70,
+            data: new Date().toISOString(),
+          },
+        ]);
       }
     };
     fetchRelatorios();
   }, []);
 
-  // 👉 Exportar relatórios (ainda fake — depois conectamos ao PDF real)
+  // 👉 Exportar relatórios (gera PDF/salvar como PDF)
   const handleExport = () => {
-    alert("Exportando relatórios em PDF (mock). Depois conectamos ao backend real.");
+    window.print(); // abre a janela de impressão → usuário pode salvar como PDF
   };
 
   return (
