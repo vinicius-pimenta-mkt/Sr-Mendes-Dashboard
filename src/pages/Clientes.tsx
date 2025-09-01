@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { api } from "@/services/api"; // 👉 conexão com backend
+import { api } from "@/services/api";
 
 interface Cliente {
   id: string;
@@ -23,21 +23,23 @@ const Clientes = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // 👉 Carregar lista de clientes na montagem
+  // 👉 Listar clientes
   useEffect(() => {
     const fetchClientes = async () => {
       try {
         const res = await api.get("/clientes");
-        setClientes(res.data);
+        const data = Array.isArray(res.data) ? res.data : [];
+        setClientes(data);
       } catch (err) {
         console.error(err);
+        setClientes([]);
       }
     };
     fetchClientes();
   }, []);
 
   // 👉 Criar cliente
-  const handleAddCliente = async () => {
+  const handleSave = async () => {
     setLoading(true);
     setError("");
     try {
@@ -47,8 +49,6 @@ const Clientes = () => {
         aniversario,
         obs,
       });
-
-      // Atualiza lista local
       setClientes((prev) => [res.data, ...prev]);
       setOpen(false);
       setNome("");
@@ -56,7 +56,7 @@ const Clientes = () => {
       setAniversario("");
       setObs("");
     } catch (err: any) {
-      setError(err.response?.data?.error || "Erro ao criar cliente");
+      setError(err.response?.data?.error || "Erro ao salvar cliente");
     } finally {
       setLoading(false);
     }
@@ -66,20 +66,24 @@ const Clientes = () => {
     <div className="p-6">
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-2xl font-bold">Clientes</h1>
-        <Button onClick={() => setOpen(true)}>+ Adicionar Cliente</Button>
+        <Button onClick={() => setOpen(true)}>+ Novo Cliente</Button>
       </div>
 
-      {/* Lista de clientes */}
       <ul className="space-y-2">
         {clientes.map((c) => (
           <li key={c.id} className="p-3 bg-white rounded shadow">
             <p className="font-semibold">{c.nome}</p>
-            <p className="text-sm text-gray-600">{c.telefone}</p>
+            <p className="text-sm">{c.telefone}</p>
+            {c.aniversario && (
+              <p className="text-xs text-gray-500">
+                Aniversário: {c.aniversario}
+              </p>
+            )}
+            {c.obs && <p className="text-xs italic">{c.obs}</p>}
           </li>
         ))}
       </ul>
 
-      {/* Modal Novo Cliente */}
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
           <DialogHeader>
@@ -93,7 +97,10 @@ const Clientes = () => {
             </div>
             <div>
               <Label>Telefone</Label>
-              <Input value={telefone} onChange={(e) => setTelefone(e.target.value)} />
+              <Input
+                value={telefone}
+                onChange={(e) => setTelefone(e.target.value)}
+              />
             </div>
             <div>
               <Label>Aniversário</Label>
@@ -107,7 +114,7 @@ const Clientes = () => {
               <Label>Observações</Label>
               <Input value={obs} onChange={(e) => setObs(e.target.value)} />
             </div>
-            <Button onClick={handleAddCliente} disabled={loading}>
+            <Button onClick={handleSave} disabled={loading}>
               {loading ? "Salvando..." : "Salvar"}
             </Button>
           </div>
