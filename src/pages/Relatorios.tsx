@@ -11,17 +11,9 @@ import {
   ResponsiveContainer, 
   PieChart, 
   Pie, 
-  Cell, 
-  LineChart, 
-  Line 
+  Cell 
 } from "recharts";
 import { Button } from "@/components/ui/button";
-import { 
-  BarChart3, 
-  TrendingUp, 
-  Users, 
-  Download 
-} from "lucide-react";
 import { api } from "@/services/api";
 
 // Tipos dos relatórios
@@ -41,9 +33,8 @@ interface FrequenciaCliente {
   visitas: number;
 }
 
-// 👉 Componente
 const Relatorios = () => {
-  // 👉 Mock inicial (pra nunca ficar vazio)
+  // 👉 Começa já com mocks, assim a tela nunca fica vazia
   const [servicosMaisVendidos, setServicosMaisVendidos] = useState<Servico[]>([
     { servico: "Corte", quantidade: 12, receita: 240 },
     { servico: "Barba", quantidade: 8, receita: 160 },
@@ -62,7 +53,6 @@ const Relatorios = () => {
     { nome: "Carlos", visitas: 7 },
   ]);
 
-  // 👉 Busca real da API (mantém mocks se falhar)
   useEffect(() => {
     const fetchRelatorios = async () => {
       try {
@@ -82,26 +72,24 @@ const Relatorios = () => {
         }
       } catch (err) {
         console.error("Erro ao buscar relatórios:", err);
+        // 👉 Mantém os mocks se der erro
       }
     };
     fetchRelatorios();
   }, []);
 
-  const CORES = ["#FFB800", "#FF8000", "#222", "#666", "#999"];
+  const COLORS = ["#facc15", "#f59e0b", "#78350f", "#000000"];
 
-  // 👉 Exportar relatório (print → PDF)
-  const exportarRelatorio = () => {
+  // 👉 Exportar relatório (print em PDF)
+  const handleExport = () => {
     window.print();
   };
 
   return (
     <div className="p-6 space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold text-foreground">Relatórios</h1>
-        <Button onClick={exportarRelatorio} variant="outline">
-          <Download className="h-4 w-4 mr-2" />
-          Exportar Relatório
-        </Button>
+        <h1 className="text-2xl font-bold">Relatórios</h1>
+        <Button onClick={handleExport}>Exportar Relatório</Button>
       </div>
 
       <Tabs defaultValue="servicos">
@@ -115,10 +103,7 @@ const Relatorios = () => {
         <TabsContent value="servicos">
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <BarChart3 className="h-5 w-5 text-accent" />
-                Serviços Mais Vendidos
-              </CardTitle>
+              <CardTitle>Serviços Mais Vendidos</CardTitle>
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={300}>
@@ -127,7 +112,7 @@ const Relatorios = () => {
                   <XAxis dataKey="servico" />
                   <YAxis />
                   <Tooltip />
-                  <Bar dataKey="quantidade" fill="#FFB800" />
+                  <Bar dataKey="quantidade" fill="#facc15" />
                 </BarChart>
               </ResponsiveContainer>
             </CardContent>
@@ -138,20 +123,17 @@ const Relatorios = () => {
         <TabsContent value="receita">
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <TrendingUp className="h-5 w-5 text-green-600" />
-                Receita por Mês
-              </CardTitle>
+              <CardTitle>Receita por Mês</CardTitle>
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={receitaTempos}>
+                <BarChart data={receitaTempos}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="mes" />
                   <YAxis />
                   <Tooltip />
-                  <Line type="monotone" dataKey="receita" stroke="#FF8000" />
-                </LineChart>
+                  <Bar dataKey="receita" fill="#f59e0b" />
+                </BarChart>
               </ResponsiveContainer>
             </CardContent>
           </Card>
@@ -161,10 +143,7 @@ const Relatorios = () => {
         <TabsContent value="clientes">
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Users className="h-5 w-5 text-accent" />
-                Clientes Mais Frequentes
-              </CardTitle>
+              <CardTitle>Clientes Mais Frequentes</CardTitle>
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={300}>
@@ -174,10 +153,11 @@ const Relatorios = () => {
                     dataKey="visitas"
                     nameKey="nome"
                     outerRadius={100}
+                    fill="#8884d8"
                     label
                   >
                     {frequenciaClientes.map((_, index) => (
-                      <Cell key={`cell-${index}`} fill={CORES[index % CORES.length]} />
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>
                   <Tooltip />
