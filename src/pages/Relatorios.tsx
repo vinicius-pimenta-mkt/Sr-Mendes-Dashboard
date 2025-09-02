@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -23,8 +23,9 @@ import {
   Download
 } from "lucide-react";
 
+// 👉 Dados fictícios (mock)
 const Relatorios = () => {
-  const [servicosMaisVendidos, setServicosMaisVendidos] = useState([
+  const [servicosMaisVendidos] = useState([
     { nome: "Corte e Barba", quantidade: 45, receita: 2025 },
     { nome: "Corte", quantidade: 32, receita: 960 },
     { nome: "Barba", quantidade: 28, receita: 560 },
@@ -60,7 +61,7 @@ const Relatorios = () => {
     'hsl(0 0% 20%)'
   ];
 
-  // 👉 Aqui está a funcionalidade de exportar (usando impressão do navegador como mock PDF)
+  // 👉 Exporta relatório em PDF (via print)
   const exportarRelatorio = () => {
     window.print(); 
   };
@@ -80,8 +81,89 @@ const Relatorios = () => {
         </Button>
       </div>
 
-      {/* resto do layout idêntico ao que estava antes */}
-      {/* ... (gráficos, tabelas, cards) */}
+      <Tabs defaultValue="servicos">
+        <TabsList>
+          <TabsTrigger value="servicos">Serviços Mais Vendidos</TabsTrigger>
+          <TabsTrigger value="receita">Receita por Dia</TabsTrigger>
+          <TabsTrigger value="clientes">Clientes Frequentes</TabsTrigger>
+        </TabsList>
+
+        {/* Serviços Mais Vendidos */}
+        <TabsContent value="servicos">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <BarChart3 className="h-5 w-5 text-accent" />
+                Serviços Mais Vendidos
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={servicosMaisVendidos}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="nome" />
+                  <YAxis />
+                  <Tooltip />
+                  <Bar dataKey="quantidade" fill="hsl(var(--accent))" />
+                </BarChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Receita por Dia */}
+        <TabsContent value="receita">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <TrendingUp className="h-5 w-5 text-green-600" />
+                Receita por Dia
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart data={receitaTempos}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="periodo" />
+                  <YAxis />
+                  <Tooltip />
+                  <Line type="monotone" dataKey="valor" stroke="hsl(var(--accent))" />
+                </LineChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Clientes Frequentes */}
+        <TabsContent value="clientes">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Users className="h-5 w-5 text-accent" />
+                Clientes Mais Frequentes
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={300}>
+                <PieChart>
+                  <Pie
+                    data={frequenciaClientes}
+                    dataKey="visitas"
+                    nameKey="nome"
+                    outerRadius={100}
+                    label
+                  >
+                    {frequenciaClientes.map((_, index) => (
+                      <Cell key={index} fill={CORES_GRAFICO[index % CORES_GRAFICO.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
