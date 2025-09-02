@@ -1,17 +1,17 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  ResponsiveContainer, 
-  PieChart, 
-  Pie, 
-  Cell 
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
 } from "recharts";
 import { Button } from "@/components/ui/button";
 import { api } from "@/services/api";
@@ -34,7 +34,7 @@ interface FrequenciaCliente {
 }
 
 const Relatorios = () => {
-  // 👉 Começa já com mocks, assim a tela nunca fica vazia
+  // 👉 Começa já com mocks (visualmente sempre cheio)
   const [servicosMaisVendidos, setServicosMaisVendidos] = useState<Servico[]>([
     { servico: "Corte", quantidade: 12, receita: 240 },
     { servico: "Barba", quantidade: 8, receita: 160 },
@@ -47,16 +47,19 @@ const Relatorios = () => {
     { mes: "Março", receita: 1600 },
   ]);
 
-  const [frequenciaClientes, setFrequenciaClientes] = useState<FrequenciaCliente[]>([
+  const [frequenciaClientes, setFrequenciaClientes] = useState<
+    FrequenciaCliente[]
+  >([
     { nome: "João", visitas: 5 },
     { nome: "Maria", visitas: 3 },
     { nome: "Carlos", visitas: 7 },
   ]);
 
+  // 👉 Busca dados reais da API
   useEffect(() => {
     const fetchRelatorios = async () => {
       try {
-        const res = await api.get("/relatorios");
+        const res = await api.get("/relatorios/dashboard");
         const data = res.data;
 
         if (data) {
@@ -72,15 +75,15 @@ const Relatorios = () => {
         }
       } catch (err) {
         console.error("Erro ao buscar relatórios:", err);
-        // 👉 Mantém os mocks se der erro
+        // 👉 Mantém mocks se der erro
       }
     };
     fetchRelatorios();
   }, []);
 
-  const COLORS = ["#facc15", "#f59e0b", "#78350f", "#000000"];
+  const COLORS = ["#facc15", "#000000", "#737373", "#d4d4d4"];
 
-  // 👉 Exportar relatório (print em PDF)
+  // 👉 Exportar relatório em PDF (simples via print)
   const handleExport = () => {
     window.print();
   };
@@ -113,6 +116,7 @@ const Relatorios = () => {
                   <YAxis />
                   <Tooltip />
                   <Bar dataKey="quantidade" fill="#facc15" />
+                  <Bar dataKey="receita" fill="#000000" />
                 </BarChart>
               </ResponsiveContainer>
             </CardContent>
@@ -132,7 +136,7 @@ const Relatorios = () => {
                   <XAxis dataKey="mes" />
                   <YAxis />
                   <Tooltip />
-                  <Bar dataKey="receita" fill="#f59e0b" />
+                  <Bar dataKey="receita" fill="#facc15" />
                 </BarChart>
               </ResponsiveContainer>
             </CardContent>
@@ -153,11 +157,13 @@ const Relatorios = () => {
                     dataKey="visitas"
                     nameKey="nome"
                     outerRadius={100}
-                    fill="#8884d8"
                     label
                   >
                     {frequenciaClientes.map((_, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={COLORS[index % COLORS.length]}
+                      />
                     ))}
                   </Pie>
                   <Tooltip />
