@@ -1,176 +1,343 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
+import { 
+  BarChart, 
+  Bar, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
   ResponsiveContainer,
   PieChart,
   Pie,
   Cell,
+  LineChart,
+  Line
 } from "recharts";
-import { Button } from "@/components/ui/button";
-import { api } from "@/services/api";
-
-// Tipos dos relatórios
-interface Servico {
-  servico: string;
-  quantidade: number;
-  receita: number;
-}
-
-interface ReceitaTempo {
-  mes: string;
-  receita: number;
-}
-
-interface FrequenciaCliente {
-  nome: string;
-  visitas: number;
-}
+import { 
+  BarChart3, 
+  TrendingUp, 
+  Users, 
+  Download,
+  Calendar
+} from "lucide-react";
 
 const Relatorios = () => {
-  // 👉 Começa já com mocks (visualmente sempre cheio)
-  const [servicosMaisVendidos, setServicosMaisVendidos] = useState<Servico[]>([
-    { servico: "Corte", quantidade: 12, receita: 240 },
-    { servico: "Barba", quantidade: 8, receita: 160 },
-    { servico: "Corte + Barba", quantidade: 5, receita: 150 },
+  const [servicosMaisVendidos, setServicosMaisVendidos] = useState([
+    { nome: "Corte e Barba", quantidade: 45, receita: 2025 },
+    { nome: "Corte", quantidade: 32, receita: 960 },
+    { nome: "Barba", quantidade: 28, receita: 560 },
+    { nome: "Corte, Barba e Sobrancelha", quantidade: 15, receita: 975 },
+    { nome: "Sobrancelha", quantidade: 12, receita: 180 },
+    { nome: "Corte e Sobrancelha", quantidade: 8, receita: 320 }
   ]);
 
-  const [receitaTempos, setReceitaTempos] = useState<ReceitaTempo[]>([
-    { mes: "Janeiro", receita: 1200 },
-    { mes: "Fevereiro", receita: 1350 },
-    { mes: "Março", receita: 1600 },
+  const [receitaTempos] = useState([
+    { periodo: "Dom", valor: 380 },
+    { periodo: "Seg", valor: 520 },
+    { periodo: "Ter", valor: 680 },
+    { periodo: "Qua", valor: 590 },
+    { periodo: "Qui", valor: 720 },
+    { periodo: "Sex", valor: 850 },
+    { periodo: "Sáb", valor: 920 }
   ]);
 
-  const [frequenciaClientes, setFrequenciaClientes] = useState<
-    FrequenciaCliente[]
-  >([
-    { nome: "João", visitas: 5 },
-    { nome: "Maria", visitas: 3 },
-    { nome: "Carlos", visitas: 7 },
+  const [frequenciaClientes] = useState([
+    { nome: "João Silva", visitas: 12, ultimaVisita: "2024-08-20", gasto: 540 },
+    { nome: "Pedro Santos", visitas: 8, ultimaVisita: "2024-08-18", gasto: 360 },
+    { nome: "Carlos Lima", visitas: 6, ultimaVisita: "2024-08-15", gasto: 270 },
+    { nome: "Marcus Oliveira", visitas: 5, ultimaVisita: "2024-08-22", gasto: 325 },
+    { nome: "Rafael Costa", visitas: 4, ultimaVisita: "2024-08-19", gasto: 180 }
   ]);
 
-  // 👉 Busca dados reais da API
-  useEffect(() => {
-    const fetchRelatorios = async () => {
-      try {
-        const res = await api.get("/relatorios/dashboard");
-        const data = res.data;
+  // 🔥 Buscar dados reais da API (mantém mocks como fallback)
+useEffect(() => {
+  const fetchData = async () => {
+    try {
+      const res = await api.get("/relatorios/dashboard");
 
-        if (data) {
-          if (Array.isArray(data.servicos) && data.servicos.length > 0) {
-            setServicosMaisVendidos(data.servicos);
-          }
-          if (Array.isArray(data.receita) && data.receita.length > 0) {
-            setReceitaTempos(data.receita);
-          }
-          if (Array.isArray(data.frequencia) && data.frequencia.length > 0) {
-            setFrequenciaClientes(data.frequencia);
-          }
+      if (res.data) {
+        // ⚡ Ajuste para bater com os dados retornados pelo backend
+        if (Array.isArray(res.data.servicos) && res.data.servicos.length > 0) {
+          setServicosMaisVendidos(res.data.servicos);
         }
-      } catch (err) {
-        console.error("Erro ao buscar relatórios:", err);
-        // 👉 Mantém mocks se der erro
+        if (Array.isArray(res.data.receita) && res.data.receita.length > 0) {
+          setReceitaTempos(res.data.receita);
+        }
+        if (Array.isArray(res.data.clientes) && res.data.clientes.length > 0) {
+          setFrequenciaClientes(res.data.clientes);
+        }
       }
-    };
-    fetchRelatorios();
-  }, []);
-
-  const COLORS = ["#facc15", "#000000", "#737373", "#d4d4d4"];
-
-  // 👉 Exportar relatório em PDF (simples via print)
-  const handleExport = () => {
-    window.print();
+    } catch (err) {
+      console.error("Erro ao buscar relatórios:", err);
+      // Se der erro, continua exibindo os mocks
+    }
   };
 
+  fetchData();
+}, []);
+  
+  const CORES_GRAFICO = [
+    'hsl(var(--accent))',
+    'hsl(var(--primary))', 
+    'hsl(0 0% 60%)',
+    'hsl(0 0% 40%)',
+    'hsl(0 0% 80%)',
+    'hsl(0 0% 20%)'
+  ];
+
+const exportarRelatorio = () => {
+  window.print(); 
+};
+  
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Relatórios</h1>
-        <Button onClick={handleExport}>Exportar Relatório</Button>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-foreground">Relatórios</h1>
+          <p className="text-muted-foreground">
+            Análise de desempenho e estatísticas da barbearia
+          </p>
+        </div>
+        <Button onClick={exportarRelatorio} variant="outline">
+          <Download className="h-4 w-4 mr-2" />
+          Exportar Relatório
+        </Button>
       </div>
 
-      <Tabs defaultValue="servicos">
-        <TabsList>
-          <TabsTrigger value="servicos">Serviços Mais Vendidos</TabsTrigger>
-          <TabsTrigger value="receita">Receita por Mês</TabsTrigger>
-          <TabsTrigger value="clientes">Clientes Frequentes</TabsTrigger>
+      <Tabs defaultValue="servicos" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="servicos">Serviços</TabsTrigger>
+          <TabsTrigger value="receita">Receita</TabsTrigger>
+          <TabsTrigger value="clientes">Clientes</TabsTrigger>
         </TabsList>
 
-        {/* Serviços Mais Vendidos */}
-        <TabsContent value="servicos">
+        <TabsContent value="servicos" className="space-y-6">
+          <div className="grid gap-6 lg:grid-cols-2">
+            {/* Gráfico de Barras - Serviços Mais Vendidos */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <BarChart3 className="h-5 w-5 text-accent" />
+                  Serviços Mais Vendidos
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={servicosMaisVendidos}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                    <XAxis 
+                      dataKey="nome" 
+                      tick={{ fontSize: 12 }}
+                      interval={0}
+                      angle={-45}
+                      textAnchor="end"
+                      height={80}
+                    />
+                    <YAxis />
+                    <Tooltip 
+                      contentStyle={{
+                        backgroundColor: 'hsl(var(--card))',
+                        border: '1px solid hsl(var(--border))',
+                        borderRadius: '6px'
+                      }}
+                    />
+                    <Bar dataKey="quantidade" fill="hsl(var(--accent))" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+
+            {/* Gráfico de Pizza - Distribuição de Serviços */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Distribuição de Serviços</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={300}>
+                  <PieChart>
+                    <Pie
+                      data={servicosMaisVendidos}
+                      cx="50%"
+                      cy="50%"
+                      outerRadius={100}
+                      fill="hsl(var(--accent))"
+                      dataKey="quantidade"
+                      label={({ nome, percent }) => `${nome} ${(percent * 100).toFixed(0)}%`}
+                    >
+                      {servicosMaisVendidos.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={CORES_GRAFICO[index % CORES_GRAFICO.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                  </PieChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Tabela de Ranking */}
           <Card>
             <CardHeader>
-              <CardTitle>Serviços Mais Vendidos</CardTitle>
+              <CardTitle>Ranking Detalhado de Serviços</CardTitle>
             </CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={servicosMaisVendidos}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="servico" />
-                  <YAxis />
-                  <Tooltip />
-                  <Bar dataKey="quantidade" fill="#facc15" />
-                  <Bar dataKey="receita" fill="#000000" />
-                </BarChart>
-              </ResponsiveContainer>
+              <div className="space-y-4">
+                {servicosMaisVendidos.map((servico, index) => (
+                  <div key={servico.nome} className="flex items-center justify-between p-4 border rounded-lg">
+                    <div className="flex items-center gap-4">
+                      <div className="w-8 h-8 rounded-full bg-accent/20 flex items-center justify-center font-bold text-accent">
+                        {index + 1}
+                      </div>
+                      <div>
+                        <h3 className="font-medium text-foreground">{servico.nome}</h3>
+                        <p className="text-sm text-muted-foreground">{servico.quantidade} atendimentos</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-bold text-foreground">R$ {servico.receita.toFixed(2)}</p>
+                      <p className="text-sm text-muted-foreground">receita total</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
 
-        {/* Receita por Mês */}
-        <TabsContent value="receita">
+        <TabsContent value="receita" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Receita por Mês</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <TrendingUp className="h-5 w-5 text-green-600" />
+                Receita Semanal
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={receitaTempos}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="mes" />
+              <ResponsiveContainer width="100%" height={400}>
+                <LineChart data={receitaTempos}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                  <XAxis dataKey="periodo" />
                   <YAxis />
-                  <Tooltip />
-                  <Bar dataKey="receita" fill="#facc15" />
-                </BarChart>
+                  <Tooltip 
+                    contentStyle={{
+                      backgroundColor: 'hsl(var(--card))',
+                      border: '1px solid hsl(var(--border))',
+                      borderRadius: '6px'
+                    }}
+                    formatter={(value) => [`R$ ${value}`, 'Receita']}
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey="valor" 
+                    stroke="hsl(var(--accent))" 
+                    strokeWidth={3}
+                    dot={{ fill: 'hsl(var(--accent))', strokeWidth: 2, r: 6 }}
+                  />
+                </LineChart>
               </ResponsiveContainer>
             </CardContent>
           </Card>
+
+          <div className="grid gap-6 md:grid-cols-3">
+            <Card className="border-l-4 border-l-green-500">
+              <CardHeader>
+                <CardTitle className="text-lg">Receita Diária</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-green-600">R$ 582,00</div>
+                <p className="text-sm text-muted-foreground">média dos últimos 7 dias</p>
+              </CardContent>
+            </Card>
+
+            <Card className="border-l-4 border-l-blue-500">
+              <CardHeader>
+                <CardTitle className="text-lg">Receita Semanal</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-blue-600">R$ 4.074,00</div>
+                <p className="text-sm text-muted-foreground">esta semana</p>
+              </CardContent>
+            </Card>
+
+            <Card className="border-l-4 border-l-purple-500">
+              <CardHeader>
+                <CardTitle className="text-lg">Receita Mensal</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-purple-600">R$ 16.850,00</div>
+                <p className="text-sm text-muted-foreground">este mês</p>
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
 
-        {/* Clientes Frequentes */}
-        <TabsContent value="clientes">
+        <TabsContent value="clientes" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Clientes Mais Frequentes</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <Users className="h-5 w-5 text-accent" />
+                Frequência dos Clientes
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <PieChart>
-                  <Pie
-                    data={frequenciaClientes}
-                    dataKey="visitas"
-                    nameKey="nome"
-                    outerRadius={100}
-                    label
-                  >
-                    {frequenciaClientes.map((_, index) => (
-                      <Cell
-                        key={`cell-${index}`}
-                        fill={COLORS[index % COLORS.length]}
-                      />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                </PieChart>
-              </ResponsiveContainer>
+              <div className="space-y-4">
+                {frequenciaClientes.map((cliente, index) => (
+                  <div key={cliente.nome} className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/30 transition-colors">
+                    <div className="flex items-center gap-4">
+                      <div className="w-10 h-10 rounded-full bg-accent/20 flex items-center justify-center font-bold text-accent">
+                        #{index + 1}
+                      </div>
+                      <div>
+                        <h3 className="font-medium text-foreground">{cliente.nome}</h3>
+                        <p className="text-sm text-muted-foreground">
+                          Última visita: {new Date(cliente.ultimaVisita).toLocaleDateString("pt-BR")}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-bold text-foreground">{cliente.visitas} visitas</p>
+                      <p className="text-sm text-muted-foreground">R$ {cliente.gasto.toFixed(2)} gasto</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </CardContent>
           </Card>
+
+          <div className="grid gap-6 md:grid-cols-3">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-sm text-muted-foreground">Total de Clientes</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-foreground">127</div>
+                <p className="text-sm text-muted-foreground">clientes cadastrados</p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-sm text-muted-foreground">Clientes Ativos</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-foreground">89</div>
+                <p className="text-sm text-muted-foreground">últimos 30 dias</p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-sm text-muted-foreground">Ticket Médio</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-foreground">R$ 42,50</div>
+                <p className="text-sm text-muted-foreground">por atendimento</p>
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
       </Tabs>
     </div>
