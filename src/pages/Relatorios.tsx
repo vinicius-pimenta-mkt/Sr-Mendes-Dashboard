@@ -56,19 +56,31 @@ const Relatorios = () => {
 useEffect(() => {
   const fetchData = async () => {
     try {
-      const res = await api.get("/relatorios/dashboard");
+      const res = await api.get("/api/relatorios/resumo");
 
       if (res.data) {
-        // ⚡ Ajuste para bater com os dados retornados pelo backend
-        if (Array.isArray(res.data.servicos) && res.data.servicos.length > 0) {
-          setServicosMaisVendidos(res.data.servicos);
+        // Serviços mais vendidos
+        if (Array.isArray(res.data.by_service)) {
+          setServicosMaisVendidos(
+            res.data.by_service.map(s => ({
+              nome: s.service,
+              quantidade: s.qty,
+              receita: s.revenue / 100
+            }))
+          );
         }
-        if (Array.isArray(res.data.receita) && res.data.receita.length > 0) {
-          setReceitaTempos(res.data.receita);
+
+        // Receita (usa totals -> transforma em períodos)
+        if (res.data.totals) {
+          setReceitaTempos([
+            { periodo: "Hoje", valor: res.data.totals.daily },
+            { periodo: "Semana", valor: res.data.totals.weekly },
+            { periodo: "Mês", valor: res.data.totals.monthly }
+          ]);
         }
-        if (Array.isArray(res.data.clientes) && res.data.clientes.length > 0) {
-          setFrequenciaClientes(res.data.clientes);
-        }
+
+        // Clientes frequentes -> ainda não tem endpoint no backend
+        // mantém mock
       }
     } catch (err) {
       console.error("Erro ao buscar relatórios:", err);
