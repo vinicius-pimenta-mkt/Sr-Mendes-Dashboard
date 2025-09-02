@@ -1,6 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   BarChart, 
@@ -9,72 +8,96 @@ import {
   YAxis, 
   CartesianGrid, 
   Tooltip, 
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-  LineChart,
-  Line
+  ResponsiveContainer, 
+  PieChart, 
+  Pie, 
+  Cell, 
+  LineChart, 
+  Line 
 } from "recharts";
+import { Button } from "@/components/ui/button";
 import { 
   BarChart3, 
   TrendingUp, 
   Users, 
-  Download
+  Download 
 } from "lucide-react";
+import { api } from "@/services/api";
 
-// 👉 Dados fictícios (mock)
+// Tipos dos relatórios
+interface Servico {
+  servico: string;
+  quantidade: number;
+  receita: number;
+}
+
+interface ReceitaTempo {
+  mes: string;
+  receita: number;
+}
+
+interface FrequenciaCliente {
+  nome: string;
+  visitas: number;
+}
+
+// 👉 Componente
 const Relatorios = () => {
-  const [servicosMaisVendidos] = useState([
-    { nome: "Corte e Barba", quantidade: 45, receita: 2025 },
-    { nome: "Corte", quantidade: 32, receita: 960 },
-    { nome: "Barba", quantidade: 28, receita: 560 },
-    { nome: "Corte, Barba e Sobrancelha", quantidade: 15, receita: 975 },
-    { nome: "Sobrancelha", quantidade: 12, receita: 180 },
-    { nome: "Corte e Sobrancelha", quantidade: 8, receita: 320 }
+  // 👉 Mock inicial (pra nunca ficar vazio)
+  const [servicosMaisVendidos, setServicosMaisVendidos] = useState<Servico[]>([
+    { servico: "Corte", quantidade: 12, receita: 240 },
+    { servico: "Barba", quantidade: 8, receita: 160 },
+    { servico: "Corte + Barba", quantidade: 5, receita: 150 },
   ]);
 
-  const [receitaTempos] = useState([
-    { periodo: "Dom", valor: 380 },
-    { periodo: "Seg", valor: 520 },
-    { periodo: "Ter", valor: 680 },
-    { periodo: "Qua", valor: 590 },
-    { periodo: "Qui", valor: 720 },
-    { periodo: "Sex", valor: 850 },
-    { periodo: "Sáb", valor: 920 }
+  const [receitaTempos, setReceitaTempos] = useState<ReceitaTempo[]>([
+    { mes: "Janeiro", receita: 1200 },
+    { mes: "Fevereiro", receita: 1350 },
+    { mes: "Março", receita: 1600 },
   ]);
 
-  const [frequenciaClientes] = useState([
-    { nome: "João Silva", visitas: 12, ultimaVisita: "2024-08-20", gasto: 540 },
-    { nome: "Pedro Santos", visitas: 8, ultimaVisita: "2024-08-18", gasto: 360 },
-    { nome: "Carlos Lima", visitas: 6, ultimaVisita: "2024-08-15", gasto: 270 },
-    { nome: "Marcus Oliveira", visitas: 5, ultimaVisita: "2024-08-22", gasto: 325 },
-    { nome: "Rafael Costa", visitas: 4, ultimaVisita: "2024-08-19", gasto: 180 }
+  const [frequenciaClientes, setFrequenciaClientes] = useState<FrequenciaCliente[]>([
+    { nome: "João", visitas: 5 },
+    { nome: "Maria", visitas: 3 },
+    { nome: "Carlos", visitas: 7 },
   ]);
 
-  const CORES_GRAFICO = [
-    'hsl(var(--accent))',
-    'hsl(var(--primary))', 
-    'hsl(0 0% 60%)',
-    'hsl(0 0% 40%)',
-    'hsl(0 0% 80%)',
-    'hsl(0 0% 20%)'
-  ];
+  // 👉 Busca real da API (mantém mocks se falhar)
+  useEffect(() => {
+    const fetchRelatorios = async () => {
+      try {
+        const res = await api.get("/relatorios");
+        const data = res.data;
 
-  // 👉 Exporta relatório em PDF (via print)
+        if (data) {
+          if (Array.isArray(data.servicos) && data.servicos.length > 0) {
+            setServicosMaisVendidos(data.servicos);
+          }
+          if (Array.isArray(data.receita) && data.receita.length > 0) {
+            setReceitaTempos(data.receita);
+          }
+          if (Array.isArray(data.frequencia) && data.frequencia.length > 0) {
+            setFrequenciaClientes(data.frequencia);
+          }
+        }
+      } catch (err) {
+        console.error("Erro ao buscar relatórios:", err);
+      }
+    };
+    fetchRelatorios();
+  }, []);
+
+  const CORES = ["#FFB800", "#FF8000", "#222", "#666", "#999"];
+
+  // 👉 Exportar relatório (print → PDF)
   const exportarRelatorio = () => {
-    window.print(); 
+    window.print();
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">Relatórios</h1>
-          <p className="text-muted-foreground">
-            Análise de desempenho e estatísticas da barbearia
-          </p>
-        </div>
+    <div className="p-6 space-y-6">
+      <div className="flex justify-between items-center">
+        <h1 className="text-3xl font-bold text-foreground">Relatórios</h1>
         <Button onClick={exportarRelatorio} variant="outline">
           <Download className="h-4 w-4 mr-2" />
           Exportar Relatório
@@ -84,7 +107,7 @@ const Relatorios = () => {
       <Tabs defaultValue="servicos">
         <TabsList>
           <TabsTrigger value="servicos">Serviços Mais Vendidos</TabsTrigger>
-          <TabsTrigger value="receita">Receita por Dia</TabsTrigger>
+          <TabsTrigger value="receita">Receita por Mês</TabsTrigger>
           <TabsTrigger value="clientes">Clientes Frequentes</TabsTrigger>
         </TabsList>
 
@@ -101,33 +124,33 @@ const Relatorios = () => {
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={servicosMaisVendidos}>
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="nome" />
+                  <XAxis dataKey="servico" />
                   <YAxis />
                   <Tooltip />
-                  <Bar dataKey="quantidade" fill="hsl(var(--accent))" />
+                  <Bar dataKey="quantidade" fill="#FFB800" />
                 </BarChart>
               </ResponsiveContainer>
             </CardContent>
           </Card>
         </TabsContent>
 
-        {/* Receita por Dia */}
+        {/* Receita por Mês */}
         <TabsContent value="receita">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <TrendingUp className="h-5 w-5 text-green-600" />
-                Receita por Dia
+                Receita por Mês
               </CardTitle>
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={300}>
                 <LineChart data={receitaTempos}>
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="periodo" />
+                  <XAxis dataKey="mes" />
                   <YAxis />
                   <Tooltip />
-                  <Line type="monotone" dataKey="valor" stroke="hsl(var(--accent))" />
+                  <Line type="monotone" dataKey="receita" stroke="#FF8000" />
                 </LineChart>
               </ResponsiveContainer>
             </CardContent>
@@ -154,7 +177,7 @@ const Relatorios = () => {
                     label
                   >
                     {frequenciaClientes.map((_, index) => (
-                      <Cell key={index} fill={CORES_GRAFICO[index % CORES_GRAFICO.length]} />
+                      <Cell key={`cell-${index}`} fill={CORES[index % CORES.length]} />
                     ))}
                   </Pie>
                   <Tooltip />
